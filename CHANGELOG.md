@@ -1,3 +1,8 @@
+## 1.0.1
+
+- Updated README to English.
+- Added Simplified Chinese documentation link.
+
 ## 1.0.0
 
 - Initial Android implementation.
