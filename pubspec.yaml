@@ -1,0 +1,27 @@
+name: ban_battery_optimization
+description: A Flutter plugin to detect and request disabling Android battery optimization, with OEM auto-start shortcuts.
+version: 1.0.0
+homepage: https://github.com/Hulkye/ban_battery_optimization
+repository: https://github.com/Hulkye/ban_battery_optimization
+issue_tracker: https://github.com/Hulkye/ban_battery_optimization/issues
+
+environment:
+  sdk: ^3.8.0
+  flutter: '>=3.32.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.hulkye.ban_battery_optimization
+        pluginClass: BanBatteryOptimizationPlugin
