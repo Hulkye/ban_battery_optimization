@@ -1,21 +1,23 @@
 # ban_battery_optimization
 
-Android 电池优化检测、系统白名单申请，以及厂商自启动 / 后台管理设置跳转的 Flutter 插件。
+A Flutter plugin for Android battery optimization checks, whitelist requests, and OEM auto-start / background management settings shortcuts.
+
+[中文文档](README.zh-CN.md)
 
 ---
 
-## 功能
+## Features
 
-- 检查当前应用是否仍受系统电池优化限制。
-- 请求系统将应用加入电池优化白名单。
-- 打开系统电池优化设置页。
-- 尝试打开厂商自启动 / 后台管理设置页。
-- 获取当前设备的电池限制诊断信息。
-- 提供一键引导流程：**检测 → 申请白名单 → 打开系统设置 → 打开厂商设置**。
+- Check whether the current app is still restricted by Android battery optimization.
+- Request the system battery optimization whitelist.
+- Open the system battery optimization settings page.
+- Try to open OEM auto-start / background management settings pages.
+- Get a diagnostic snapshot of current battery restrictions.
+- Provide a guided flow: **check → request whitelist → open system settings → open OEM settings**.
 
 ---
 
-## 已支持厂商
+## Supported manufacturers
 
 - Xiaomi / Redmi / Poco
 - Oppo / Realme / OnePlus
@@ -33,40 +35,44 @@ Android 电池优化检测、系统白名单申请，以及厂商自启动 / 后
 - Lenovo
 - Infinix / Tecno / Itel
 
-厂商设置页能力为 best-effort，不同 ROM 和系统版本可能失效。
+OEM settings shortcuts are best-effort. Some pages may change or become unavailable on different ROM or Android versions.
 
 ---
 
-## 安装
+## Installation
 
-在 `pubspec.yaml` 中添加：
+Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
   ban_battery_optimization: ^1.0.0
 ```
 
-然后执行 `flutter pub get`。
+Then run:
+
+```sh
+flutter pub get
+```
 
 ---
 
-## Android 权限
+## Android permissions
 
-插件已声明以下权限：
+The plugin declares this permission:
 
 ```xml
 <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 ```
 
-如需自行声明，也可在宿主应用 `AndroidManifest.xml` 中保留同名权限。
+You may also keep the same permission in your app's `AndroidManifest.xml` if needed.
 
-插件还声明了 Android 11+ 的 `queries` 包可见性，用于检测厂商自启动 / 后台管理设置页是否可用。
+The plugin also declares Android 11+ `queries` package visibility entries to check whether supported OEM auto-start / background management settings pages are available.
 
-`queries` 只包含已支持厂商的系统管理组件包名，不使用 `QUERY_ALL_PACKAGES`。
+The `queries` list only contains supported OEM system manager packages. It does not use `QUERY_ALL_PACKAGES`.
 
 ---
 
-## 使用示例
+## Usage
 
 ```dart
 import 'dart:io';
@@ -89,95 +95,94 @@ Future<void> checkBatteryOptimization() async {
         await BanBatteryOptimization.ensureOptimizationDisabledDetailed();
 
     if (outcome.status == OptimizationOutcomeStatus.settingsOpened) {
-      // 用户已被引导到系统设置页，可在界面上继续提示后续操作。
+      // Show follow-up instructions after the system settings page opens.
     }
   }
 
   final opened = await BanBatteryOptimization.openAutoStartSettings();
   if (!opened) {
-    // 可在这里展示应用内说明页。
+    // Show fallback in-app instructions when no OEM settings page is available.
   }
 
-  // snapshot 可用于上报、日志或界面提示。
   debugPrint(snapshot.manufacturer);
 }
 ```
 
 ---
 
-## 核心 API
+## Core APIs
 
 ### `getBatteryRestrictionSnapshot()`
 
-返回当前设备电池限制快照，包含：
+Returns a battery restriction snapshot for the current device, including:
 
-- 是否支持当前能力
-- Android SDK 版本
-- 厂商名称
-- 是否仍受电池优化限制
-- 是否开启省电模式
-- 是否可打开厂商自启动设置页
+- Capability support status
+- Android SDK version
+- Manufacturer name
+- Whether battery optimization is still enabled
+- Whether power save mode is enabled
+- Whether an OEM auto-start settings page is available
 
 ### `isBatteryOptimizationEnabled()`
 
-返回当前应用是否仍受系统电池优化限制。
+Returns whether the current app is still restricted by system battery optimization.
 
 ### `requestDisableBatteryOptimization()`
 
-尝试弹出系统授权框，请求将应用加入白名单。
+Tries to show the system prompt that asks the user to add the app to the battery optimization whitelist.
 
 ### `openBatteryOptimizationSettings()`
 
-打开系统电池优化设置页。
+Opens the system battery optimization settings page.
 
 ### `openAutoStartSettings()`
 
-尝试打开厂商自启动 / 后台管理设置页。
+Tries to open an OEM auto-start / background management settings page.
 
-- 返回 `true`：成功发起跳转。
-- 返回 `false`：当前设备无可用页面或跳转失败。
+- Returns `true` when a settings page was launched.
+- Returns `false` when no page is available or launching fails.
 
 ### `ensureOptimizationDisabledDetailed()`
 
-返回带状态的完整引导结果：
+Returns a detailed guided-flow result:
 
-- `alreadyDisabled`：原本就未受限制
-- `disabledAfterPrompt`：弹框授权后已成功加入白名单
-- `settingsOpened`：已打开系统设置页，等待用户手动处理
-- `unsupported`：当前平台或系统版本不支持
-- `failed`：流程执行失败
+- `alreadyDisabled`: the app was already unrestricted
+- `disabledAfterPrompt`: the app was whitelisted after the system prompt
+- `settingsOpened`: the system settings page was opened for manual action
+- `unsupported`: the current platform or system version is unsupported
+- `failed`: the flow failed
 
 ### `ensureOptimizationDisabled()`
 
-返回简化布尔值结果。
+Returns a simplified boolean result.
 
-- `true`：未出现显式失败
-- `false`：流程失败
-
----
-
-## Android 说明
-
-- 该插件只能引导用户进入系统页面或厂商页面，不能静默关闭电池优化。
-- Android 6.0 以上才存在 Doze / 电池优化限制概念。
-- 厂商设置页路径依赖 ROM 实现，可能随系统更新变化。
+- `true`: no explicit failure occurred
+- `false`: the flow failed
 
 ---
 
-## 使用建议
+## Android notes
 
-- 在跳转前向用户说明用途，例如后台语音、消息保活、定时任务提醒。
-- 对 `openAutoStartSettings()` 返回 `false` 的情况做好兜底提示。
-- 若已打开设置页但用户未授权，建议在应用内提供简短图文指引。
-
----
-
-## 变更记录
-
-详见 `CHANGELOG.md`。
+- This plugin can only guide users to system or OEM settings pages. It cannot silently disable battery optimization.
+- Android 6.0+ introduced Doze and battery optimization restrictions.
+- OEM settings page paths depend on ROM implementations and may change over time.
 
 ---
 
-## 许可证
+## Recommendations
+
+- Explain the reason before opening settings, such as background audio, notifications, or scheduled reminders.
+- Provide fallback instructions when `openAutoStartSettings()` returns `false`.
+- If a settings page was opened but the user did not grant permission, provide concise in-app guidance.
+
+---
+
+## Changelog
+
+See `CHANGELOG.md`.
+
+---
+
+## License
 
 MIT
